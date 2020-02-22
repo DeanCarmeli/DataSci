@@ -1,6 +1,7 @@
 from aggregate import aggregate
 from aggregate import capm_params
 from feature_handler import feature_handler
+import zipfile
 import json
 import pandas as pd
 
@@ -11,6 +12,8 @@ def unzip_data():
     Name of the unzipped file = "all_prices.json"
     :return: None
     """
+    with zipfile.ZipFile("all_prices.zip", "r") as zip_ref:
+        zip_ref.extractall()
     pass
 
 
