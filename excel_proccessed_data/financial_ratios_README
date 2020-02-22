@@ -1,0 +1,27 @@
+************************************
+Handling Financial Ratios
+************************************
+Source of raw data: http://pages.stern.nyu.edu/~adamodar/
+					Go to:
+					Data --> Archived Data --> Capital Structure --> Debt Ratio Trade Off Variables by Industry (US)
+					Data --> Current Data --> Capital Structure --> Debt Ratio Trade Off Variables by Industry (US)
+Authour (raw data): Aswath Damodaran
+About the Author: https://en.wikipedia.org/wiki/Aswath_Damodaran
+
+************************************
+*****************
+
+*********	General Structure of financial_ratios_v2.xls	****************
+
+1.	Each numbered tab is the year of the data
+2.	In each tab, colored columns were added manually
+3.	tab "sum" is the processed data we used
+4.	The file is backed with formulas to track how each cell in the "sum" tab was calculated.
+	In general, the following steps were taken for each year:
+	a.	Map the sector in the year's tab to the sectors we use (done manually based on general knowledge)
+	b.	Calculate the weighted average for each ratio in the sector.
+
+
+
+
+
