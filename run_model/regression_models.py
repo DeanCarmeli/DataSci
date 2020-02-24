@@ -7,7 +7,7 @@ from sklearn.model_selection import train_test_split
 def split_test_train(df, y):
     pass
 
-def generate_bl_model_data(df, print_ = True):
+def generate_bl_model_data(df, print_ = True, y_col = "aar_5"):
     """
     Generate data for the baseline models in step 3.
     """
@@ -25,8 +25,9 @@ def generate_bl_model_data(df, print_ = True):
            'expected_t-2', 'expected_t-1', 'expected_t0', 'expected_t1',
            'expected_t2', 'expected_t3', 'expected_t4', 'expected_t5', 'ar_t-5',
            'ar_t-4', 'ar_t-3', 'ar_t-2', 'ar_t-1', 'ar_t0', 'ar_t1', 'ar_t2',
-           'ar_t3', 'ar_t4', 'ar_t5', 'aar_0', 'aar_1', 'aar_2', 'aar_3', 'aar_4',
+           'ar_t3', 'ar_t4', 'ar_t5', 'aar_0', 'aar_1', 'aar_2', 'aar_3', 'aar_4', 'aar_5',
            'aar_0%', 'aar_1%', 'aar_2%', 'aar_3%', 'aar_4%', 'aar_5%'] + cat_cols
+    drop_cols_baseline.remove(y_col)
     baseline_models_data = df.drop(drop_cols_baseline, axis = 1)
     baseline_models_data = pd.get_dummies(data = baseline_models_data,\
                                           prefix='sector',
@@ -36,31 +37,25 @@ def generate_bl_model_data(df, print_ = True):
     if print_: print("Baseline model features: {}".format(list(baseline_models_data.columns)))
     return baseline_models_data
 
-def run_linear_reg_research(data ,print_ = True):
+def run_linear_reg_research(data , print_summary = False, print_r2 = True):
     """
     Run linear regression only on samples with div_change!=0
     param: data: DataFrame , print_:Boolean
     return: linear regression model
     """
     data = data[data['div_direction']!=0]
-    y_col = "aar_5"
-    data = sm.add_constant(data, prepend=False)
-    X = data.drop(y_col, axis = 1)
-    Y = data[y_col]
-    result = sm.OLS(Y, X).fit()
-    if print_: print(result.summary())
-    return result
+    return run_linear_reg(data, print_summary = print_summary, print_r2 = print_r2, y_col = "aar_5")
 
-def run_linear_reg_baseline(data, print_ = True):
+def run_linear_reg(data, print_summary = False, print_r2 = True, y_col = "aar_5"):
     """
     Run linear regression
     param: data: DataFrame , print_:Boolean
     return: linear regression model
     """
-    y_col = "aar_5"
     data = sm.add_constant(data, prepend=False)
     X = data.drop(y_col, axis = 1)
     Y = data[y_col]
     result = sm.OLS(Y, X).fit()
-    if print_: print(result.summary())
+    if print_summary: print(result.summary())
+    if not print_summary and print_r2: print('R^2: {}'.format(result.rsquared))
     return result

@@ -123,3 +123,10 @@ def create_abnormal_return(df):
     df.drop(temp_cols, axis=1, inplace=True)
     print(">>> Finished. Created {} features".format(34))
     return df
+
+
+def gen_delta_precent_t(df, print_ = True):
+    df['delta_%_t-5'] = (df['price_t-5'] - df['expected_t-5']) / df['expected_t-5']
+    df['delta_%_t-4'] = (df['price_t-4'] - df['expected_t-4']) / df['expected_t-4']
+    if print_: print("Created delta_%_t-4 and delta_%_t-5 features")
+    return df
