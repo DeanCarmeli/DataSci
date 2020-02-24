@@ -137,9 +137,8 @@ def aggregate_meta_data(div_data_with_capm):
             for i in range(0, num_of_div):
                 entries.append(_extract_entry(company, i))
 
-    # Create a dataFrame object and save it as csv file
+    # Create a dataFrame object
     df = pd.DataFrame(data=entries, columns=COLUMNS)
-    # df.to_csv("data_with_stock_return_30.12.csv", index=False)
     return df
 
 

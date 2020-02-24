@@ -4,6 +4,7 @@ from feature_handler import feature_handler
 import zipfile
 import json
 import pandas as pd
+from visualize import visualize
 
 
 def unzip_data():
@@ -66,8 +67,8 @@ def main():
     # Step 1: data pre-process steps and initial feature extraction
     unzip_data()
     all_prices = json.load(open("all_prices.json", "r"))
-    # df = do_aggregate_steps(all_prices)
-    df = pd.read_csv("aggregated_data.csv")
+    df = do_aggregate_steps(all_prices)
+    # df = pd.read_csv("aggregated_data.csv")
 
     # Scan data - Number of samples, NaN samples
     print(df.shape)
@@ -86,7 +87,7 @@ def main():
 
     # Add abnormal return data
     df = feature_handler.create_abnormal_return(df)
-    # df.to_csv("data_with_ar.csv", index=False)
+    df.to_csv("all_data.csv", index=False)
     # >>>> Finished data pre-process steps and initial feature extraction
 
     # Step 2: Data insights and visualization including drop outliers
@@ -108,5 +109,14 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    # main()
+    df = pd.read_csv("all_data.csv")
+    df.drop(df[df["aar_5"] > 10].index, inplace=True)
+    df.drop(df[df["aar_5"] < -10].index, inplace=True)
+    df = feature_handler.create_asymmetric_window(df, -1, 5)
+    visualize.window_analysis(df, "ar")
+    visualize.window_analysis(df, "aar")
+    visualize.window_analysis(df, "aar%")
+    visualize.window_analysis(df, "asy")
+
 

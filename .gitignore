@@ -1,0 +1,6 @@
+.idea
+all_prices.json
+all_data.csv
+try.csv
+*.pyc
+*.pyo
