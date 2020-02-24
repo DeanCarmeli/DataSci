@@ -73,14 +73,19 @@ def do_aggregate_steps(all_prices):
 ##########################Step 2
 def remove_outliers(df, range_min, range_max, print_ = True):
     range_min , range_max = -100, 100
-    df_no_outliers = (df[df['aar_5'] < range_max][df['aar_5'] > range_min]).reset_index()
+    df_no_outliers = (df[df['aar_5'] < range_max][df['aar_5'] > range_min]).reset_index(drop = True)
     if print_: print("Removed {} outliers".format(df.shape[0] - df_no_outliers.shape[0]))
     return df_no_outliers
 
 ##########################Step 3
 
 ##########################Step 4
-
+def remove_2008_2009(df, print_ = True):
+    samples_before = df.shape[0]
+    df = (df[df['year']!= 2008][df['year']!=2009]).reset_index(drop = True)
+    samples_after = df.shape[0]
+    if print_: print("Removed {} samples from years 2008 - 2009".format(samples_before-samples_after))
+    return df
 ##########################Step 5
 
 ##########################Step 6
