@@ -4,8 +4,17 @@ from feature_handler import feature_handler
 import zipfile
 import json
 import pandas as pd
+#General
+def print_basic_stats(data, nans = True):
+    r, c = data.shape
+    nans_count = (data.isna().sum(axis = 1) > 0).sum()
+    print("Data Stats:")
+    print("\t#Samples: {}\n\t#Features: {}".format(r, c))
+    if nans: print("\t#Samples with NaNs: {}".format(nans_count))
+    return r, c, nans_count
 
 
+##########################Step 1
 def unzip_data():
     """
     Unzips the merged data that was created by the fetch_data module.
@@ -61,6 +70,28 @@ def do_aggregate_steps(all_prices):
     df = aggregate.aggregate_fin_ratios(df)
     return df
 
+##########################Step 2
+def remove_outliers(df, range_min, range_max, print_ = True):
+    range_min , range_max = -100, 100
+    df_no_outliers = (df[df['aar_5'] < range_max][df['aar_5'] > range_min]).reset_index()
+    if print_: print("Removed {} outliers".format(df.shape[0] - df_no_outliers.shape[0]))
+    return df_no_outliers
+
+##########################Step 3
+
+##########################Step 4
+
+##########################Step 5
+
+##########################Step 6
+
+##########################Step 7
+
+##########################Step 8
+
+##########################Step 9
+
+##########################
 
 def main():
     # Step 1: data pre-process steps and initial feature extraction
