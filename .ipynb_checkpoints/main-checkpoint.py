@@ -7,7 +7,11 @@ import pandas as pd
 
 from visualize import visualize
 
+<<<<<<< HEAD
 #General
+=======
+##########################General
+>>>>>>> elad
 def print_basic_stats(data, nans = True):
     r, c = data.shape
     nans_count = (data.isna().sum(axis = 1) > 0).sum()
@@ -15,6 +19,61 @@ def print_basic_stats(data, nans = True):
     print("\t#Samples: {}\n\t#Features: {}".format(r, c))
     if nans: print("\t#Samples with NaNs: {}".format(nans_count))
     return r, c, nans_count
+
+def generate_bl_model_data(df, window_size = 5, y_col = "aar_5", drop_08_09 = False, print_ = True):
+    """
+    Generate data for the baseline model.
+    Params:
+    df: the data to generate from
+    window_size: the window_size we wish to predict, either in 1,..,5 or a tuple. if a tuple the window is asymetric and y_col is ignored!
+    y_col: the Y column
+    drop_08_09: whether to drop 2008,2009 or not
+    print_: print result details
+    
+    Return: DataFrame
+    """
+    cat_cols = list(df.columns[df.dtypes == 'object'])
+    
+    drop_cols_baseline = ['price_t-5', 'vol_t-5', 'sp_price_t-5', 'sp_vol_t-5',
+           'price_t-4', 'vol_t-4', 'sp_price_t-4', 'sp_vol_t-4', 'price_t-3',
+           'vol_t-3', 'sp_price_t-3', 'sp_vol_t-3', 'price_t-2', 'vol_t-2',
+           'sp_price_t-2', 'sp_vol_t-2', 'price_t-1', 'vol_t-1', 'sp_price_t-1',
+           'sp_vol_t-1', 'price_t0', 'vol_t0', 'sp_price_t0', 'sp_vol_t0',
+           'price_t1', 'vol_t1', 'sp_price_t1', 'sp_vol_t1', 'price_t2', 'vol_t2',
+           'sp_price_t2', 'sp_vol_t2', 'price_t3', 'vol_t3', 'sp_price_t3',
+           'sp_vol_t3', 'price_t4', 'vol_t4', 'sp_price_t4', 'sp_vol_t4',
+           'price_t5', 'vol_t5', 'sp_price_t5', 'sp_vol_t5','expected_t-5', 'expected_t-4', 'expected_t-3',
+           'expected_t-2', 'expected_t-1', 'expected_t0', 'expected_t1',
+           'expected_t2', 'expected_t3', 'expected_t4', 'expected_t5', 'ar_t-5',
+           'ar_t-4', 'ar_t-3', 'ar_t-2', 'ar_t-1', 'ar_t0', 'ar_t1', 'ar_t2',
+           'ar_t3', 'ar_t4', 'ar_t5', 'aar_0', 'aar_1', 'aar_2', 'aar_3', 'aar_4', 'aar_5',
+           'aar_0%', 'aar_1%', 'aar_2%', 'aar_3%', 'aar_4%', 'aar_5%'] + cat_cols
+    if isinstance(window_size, tuple):
+        start, end = window_size
+        df = feature_handler.create_asymmetric_window(df ,start, end)
+        y_col = "aar_asy{}_{}%".format(str(start), str(end))
+        start = abs(start)
+    else: 
+        start = window_size
+    if start < 3:
+        check = lambda c: sum(["t-{}".format(i) in c for i in range(start+3, 6)]) > 0 
+        for c in [c for c in drop_cols_baseline if check(c)]: drop_cols_baseline.remove(c)
+
+    if y_col in drop_cols_baseline: drop_cols_baseline.remove(y_col)
+    drop_cols_baseline.remove('sector')
+    baseline_models_data = df.drop(drop_cols_baseline, axis = 1)
+    baseline_models_data = pd.get_dummies(data = baseline_models_data,\
+                                          prefix='sector',
+                                          columns = ['sector'],
+                                          drop_first = True)
+    baseline_models_data.reset_index(inplace = True, drop = True)
+    if drop_08_09: 
+        baseline_models_data = \
+        (baseline_models_data[baseline_models_data['year']!= 2008][baseline_models_data['year']!=2009])\
+        .reset_index(drop = True)
+    if print_: print("Baseline model features: {}".format(set(baseline_models_data.columns) - set([y_col])))
+    return baseline_models_data
+
 
 
 
