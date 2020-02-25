@@ -125,7 +125,7 @@ def create_abnormal_return(df):
     return df
 
 
-def create_asymmetric_window(df, start=-1, end=5):
+def create_asymmetric_window(data, start=-1, end=5):
     """
     Calculates the average abnormal return normalized by the
     expected price over a time window of "start" days before the dividend
@@ -135,6 +135,7 @@ def create_asymmetric_window(df, start=-1, end=5):
     :param end: int in range(1, 6) - number of days after announcement
     :return: DataFrame
     """
+    df = data.copy(deep = True)
     ar_cols = ["ar_t{}".format(x) for x in range(start+1, end+1)]
     ex_cols = ["expected_t{}".format(x) for x in range(start+1, end+1)]
 
@@ -153,9 +154,10 @@ def create_asymmetric_window(df, start=-1, end=5):
     # divide
     df["aar_asy{}_{}%".format(str(start), str(end))] = df["temp_ar"].div(df["temp_ex"])
     df.drop(["temp_ex", "temp_ar"], axis=1, inplace=True)
+    return df
 
-def gen_delta_precent_t(df, print_ = True):
-    df['delta_%_t-5'] = (df['price_t-5'] - df['expected_t-5']) / df['expected_t-5']
-    df['delta_%_t-4'] = (df['price_t-4'] - df['expected_t-4']) / df['expected_t-4']
-    if print_: print("Created delta_%_t-4 and delta_%_t-5 features")
+def gen_delta_precent_t(df, ts = [4,5], print_ = True):
+    for t in ts:
+        df['delta_%_t-{}'.format(t)] = (df['price_t-{}'.format(t)] - df['expected_t-{}'.format(t)]) / df['expected_t-{}'.format(t)]
+    if print_: print("Created " +', '.join(['delta_%_t-{}'.format(t) for t in ts]) + " features")
     return df
