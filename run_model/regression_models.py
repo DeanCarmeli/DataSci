@@ -34,7 +34,7 @@ def generate_bl_model_data(df, print_ = True, y_col = "aar_5"):
                                           columns = ['sector'],
                                           drop_first = True)
     baseline_models_data.reset_index(inplace = True, drop = True)
-    if print_: print("Baseline model features: {}".format(list(baseline_models_data.columns)))
+    if print_: print("Baseline model features: {}".format(set(baseline_models_data.columns) - set([y_col])))
     return baseline_models_data
 
 def run_linear_reg(data, print_summary = False, print_r2 = True, y_col = "aar_5"):
