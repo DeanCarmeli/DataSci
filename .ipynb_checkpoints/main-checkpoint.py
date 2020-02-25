@@ -4,6 +4,7 @@ from feature_handler import feature_handler
 import zipfile
 import json
 import pandas as pd
+from sklearn.model_selection import train_test_split
 
 from visualize import visualize
 
@@ -20,7 +21,12 @@ def print_basic_stats(data, nans = True):
     if nans: print("\t#Samples with NaNs: {}".format(nans_count))
     return r, c, nans_count
 
-def generate_bl_model_data(df, window_size = 5, y_col = "aar_5", drop_08_09 = False, print_ = True):
+def split_test_train(df, y_col, test_size = 0.33):
+    X_train, X_test, y_train, y_test = train_test_split\
+        (df.drop([y_col], axis =1), df[y_col], test_size = test_size)
+    return X_train, X_test, y_train, y_test
+
+def generate_bl_model_data(df, window_size = 5, y_col = "aar_5", drop_08_09 = False, sector_dummies = False,print_ = True):
     """
     Generate data for the baseline model.
     Params:
@@ -60,9 +66,10 @@ def generate_bl_model_data(df, window_size = 5, y_col = "aar_5", drop_08_09 = Fa
         for c in [c for c in drop_cols_baseline if check(c)]: drop_cols_baseline.remove(c)
 
     if y_col in drop_cols_baseline: drop_cols_baseline.remove(y_col)
-    drop_cols_baseline.remove('sector')
+    if sector_dummies: drop_cols_baseline.remove('sector')
     baseline_models_data = df.drop(drop_cols_baseline, axis = 1)
-    baseline_models_data = pd.get_dummies(data = baseline_models_data,\
+    if sector_dummies:
+        baseline_models_data = pd.get_dummies(data = baseline_models_data,\
                                           prefix='sector',
                                           columns = ['sector'],
                                           drop_first = True)

@@ -1,10 +1,8 @@
 import numpy as np
 import pandas as pd
 import statsmodels.api as sm
-from sklearn.model_selection import train_test_split
 
-def split_test_train(df, y):
-    pass
+
 
 
 def run_linear_reg(data, print_summary = False, print_r2 = True, y_col = "aar_5"):
