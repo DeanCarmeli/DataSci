@@ -157,6 +157,7 @@ def create_asymmetric_window(data, start=-1, end=5):
     return df
 
 def gen_delta_precent_t(df, ts = [4,5], print_ = True):
+    df = df.copy(deep = True)
     for t in ts:
         df['delta_%_t-{}'.format(t)] = (df['price_t-{}'.format(t)] - df['expected_t-{}'.format(t)]) / df['expected_t-{}'.format(t)]
     if print_: print("Created " +', '.join(['delta_%_t-{}'.format(t) for t in ts]) + " features")

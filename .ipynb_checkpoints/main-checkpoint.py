@@ -8,11 +8,7 @@ from sklearn.model_selection import train_test_split
 
 from visualize import visualize
 
-<<<<<<< HEAD
-#General
-=======
 ##########################General
->>>>>>> elad
 def print_basic_stats(data, nans = True):
     r, c = data.shape
     nans_count = (data.isna().sum(axis = 1) > 0).sum()
@@ -26,7 +22,13 @@ def split_test_train(df, y_col, test_size = 0.33):
         (df.drop([y_col], axis =1), df[y_col], test_size = test_size)
     return X_train, X_test, y_train, y_test
 
-def generate_bl_model_data(df, window_size = 5, y_col = "aar_5", drop_08_09 = False, sector_dummies = False,print_ = True):
+def generate_bl_model_data(df, 
+                           window_size = 5, 
+                           y_col = "aar_5", 
+                           drop_08_09 = False, 
+                           sector_dummies = False,
+                           delta_precentage = False,
+                           print_ = True):
     """
     Generate data for the baseline model.
     Params:
@@ -54,16 +56,19 @@ def generate_bl_model_data(df, window_size = 5, y_col = "aar_5", drop_08_09 = Fa
            'ar_t-4', 'ar_t-3', 'ar_t-2', 'ar_t-1', 'ar_t0', 'ar_t1', 'ar_t2',
            'ar_t3', 'ar_t4', 'ar_t5', 'aar_0', 'aar_1', 'aar_2', 'aar_3', 'aar_4', 'aar_5',
            'aar_0%', 'aar_1%', 'aar_2%', 'aar_3%', 'aar_4%', 'aar_5%'] + cat_cols
+    
     if isinstance(window_size, tuple):
         start, end = window_size
         df = feature_handler.create_asymmetric_window(df ,start, end)
         y_col = "aar_asy{}_{}%".format(str(start), str(end))
         start = abs(start)
-    else: 
-        start = window_size
+    else: start = window_size
+        
     if start < 3:
         check = lambda c: sum(["t-{}".format(i) in c for i in range(start+3, 6)]) > 0 
         for c in [c for c in drop_cols_baseline if check(c)]: drop_cols_baseline.remove(c)
+        if delta_precentage: 
+            df = feature_handler.gen_delta_precent_t(df, ts = list(range(start+3,6)),print_ = False)
 
     if y_col in drop_cols_baseline: drop_cols_baseline.remove(y_col)
     if sector_dummies: drop_cols_baseline.remove('sector')
@@ -80,7 +85,6 @@ def generate_bl_model_data(df, window_size = 5, y_col = "aar_5", drop_08_09 = Fa
         .reset_index(drop = True)
     if print_: print("Baseline model features: {}".format(set(baseline_models_data.columns) - set([y_col])))
     return baseline_models_data
-
 
 
 
