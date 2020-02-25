@@ -76,7 +76,6 @@ def do_aggregate_steps(all_prices):
 
 ##########################Step 2
 def remove_outliers(df, range_min, range_max, print_ = True):
-    range_min , range_max = -100, 100
     df_no_outliers = (df[df['aar_5'] < range_max][df['aar_5'] > range_min]).reset_index(drop = True)
     if print_: print("Removed {} outliers".format(df.shape[0] - df_no_outliers.shape[0]))
     return df_no_outliers
