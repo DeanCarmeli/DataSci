@@ -4,9 +4,9 @@ from feature_handler import feature_handler
 import zipfile
 import json
 import pandas as pd
-<<<<<<< HEAD
+
 from visualize import visualize
-=======
+
 #General
 def print_basic_stats(data, nans = True):
     r, c = data.shape
@@ -15,7 +15,7 @@ def print_basic_stats(data, nans = True):
     print("\t#Samples: {}\n\t#Features: {}".format(r, c))
     if nans: print("\t#Samples with NaNs: {}".format(nans_count))
     return r, c, nans_count
->>>>>>> elad
+
 
 
 ##########################Step 1

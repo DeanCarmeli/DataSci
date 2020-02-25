@@ -125,7 +125,6 @@ def create_abnormal_return(df):
     return df
 
 
-<<<<<<< HEAD
 def create_asymmetric_window(df, start=-1, end=5):
     """
     Calculates the average abnormal return normalized by the
@@ -154,10 +153,9 @@ def create_asymmetric_window(df, start=-1, end=5):
     # divide
     df["aar_asy{}_{}%".format(str(start), str(end))] = df["temp_ar"].div(df["temp_ex"])
     df.drop(["temp_ex", "temp_ar"], axis=1, inplace=True)
-=======
+
 def gen_delta_precent_t(df, print_ = True):
     df['delta_%_t-5'] = (df['price_t-5'] - df['expected_t-5']) / df['expected_t-5']
     df['delta_%_t-4'] = (df['price_t-4'] - df['expected_t-4']) / df['expected_t-4']
     if print_: print("Created delta_%_t-4 and delta_%_t-5 features")
->>>>>>> elad
     return df
