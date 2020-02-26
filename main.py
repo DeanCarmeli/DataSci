@@ -45,7 +45,7 @@ def generate_bl_model_data(df,
                            window_size = 5, 
                            y_col = "aar_5", 
                            drop_08_09 = False, 
-                           sector_dummies = False,
+                           dummies = ['year', 'month'],
                            delta_precentage = False,
                            test_size = 0,
                            print_ = True):
@@ -64,7 +64,11 @@ def generate_bl_model_data(df,
             if test_size>0: data_train , data_test
     """
     cat_cols = list(df.columns[df.dtypes == 'object'])
-    
+    if drop_08_09: 
+        df = \
+        (df[df['year']!= 2008][df['year']!=2009])\
+        .reset_index(drop = True)
+
     drop_cols_baseline = ['price_t-5', 'vol_t-5', 'sp_price_t-5', 'sp_vol_t-5',
            'price_t-4', 'vol_t-4', 'sp_price_t-4', 'sp_vol_t-4', 'price_t-3',
            'vol_t-3', 'sp_price_t-3', 'sp_vol_t-3', 'price_t-2', 'vol_t-2',
@@ -94,18 +98,15 @@ def generate_bl_model_data(df,
             df = feature_handler.gen_delta_precent_t(df, ts = list(range(start+3,6)),print_ = False)
 
     if y_col in drop_cols_baseline: drop_cols_baseline.remove(y_col)
-    if sector_dummies: drop_cols_baseline.remove('sector')
+    if dummies:
+        for c in dummies: 
+            if c in drop_cols_baseline: drop_cols_baseline.remove(c)
     baseline_models_data = df.drop(drop_cols_baseline, axis = 1)
-    if sector_dummies:
+    if dummies:
         baseline_models_data = pd.get_dummies(data = baseline_models_data,\
-                                          prefix='sector',
-                                          columns = ['sector'],
+                                          columns = dummies,\
                                           drop_first = True)
     baseline_models_data.reset_index(inplace = True, drop = True)
-    if drop_08_09: 
-        baseline_models_data = \
-        (baseline_models_data[baseline_models_data['year']!= 2008][baseline_models_data['year']!=2009])\
-        .reset_index(drop = True)
     if print_: print("Baseline model features: {}".format(set(baseline_models_data.columns) - set([y_col])))
     if test_size>0:
         return split_test_train(baseline_models_data, y_col=None, test_size = 0.33)
