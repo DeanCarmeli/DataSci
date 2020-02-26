@@ -6,6 +6,9 @@ from sklearn.dummy import DummyRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.feature_selection import RFE
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import RandomizedSearchCV
+from sklearn.ensemble import RandomForestRegressor
+from scipy.stats import randint
 
 mse_exp = 4
 
@@ -79,3 +82,14 @@ def r_squared(model, data, y_col):
     SST = ((y-y.mean())**2).sum().item()
     R_squared = 1 - (RSS/SST) #by definition
     return R_squared
+
+def rf_cv(X_train, y_train):
+    """
+    CV for parameters in randaom forest.
+    return: RandomizedSearchCV
+    """
+    rf_model = RandomForestRegressor()
+    distributions = dict(n_estimators=randint(10,500), max_depth = [None, 5, 10 ,20])
+    clf = RandomizedSearchCV(rf_model, distributions, random_state=0)
+    clf.fit(X_train, y_train)
+    return clf
