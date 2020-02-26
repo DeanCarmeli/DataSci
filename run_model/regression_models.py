@@ -5,6 +5,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.dummy import DummyRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.feature_selection import RFE
+from sklearn.ensemble import RandomForestRegressor
 
 mse_exp = 4
 
@@ -14,7 +15,6 @@ def mse(preds, y):
     return p*(((preds-y)**2).sum()/n)
 
 def predict_linear_reg(model, data, y_col):
-    model = run_linear_reg(data, print_summary = False, print_r2 = True, y_col = y_col)
     data = sm.add_constant(data, prepend=False)
     X = data.drop(y_col, axis = 1)
     Y = data[y_col]
@@ -27,7 +27,7 @@ def run_linear_reg(data, print_summary = False, print_r2 = True, y_col = "aar_5"
     return: linear regression model
     """
     data = sm.add_constant(data, prepend=False)
-    X = data.drop(y_col, axis = 1)
+    X = data.drop([y_col], axis = 1)
     Y = data[y_col]
     result = sm.OLS(Y, X).fit()
     if print_summary: print(result.summary())
@@ -63,3 +63,19 @@ def rfe(data, y_col,model = None, n_features_to_select = 1):
     rfe = RFE(estimator = model, n_features_to_select=n_features_to_select, step=1)
     rfe.fit(X, y)
     return set(X.columns[rfe.support_])
+
+def fit_rf(X, y, n_estimators):
+    rf_model = RandomForestRegressor(n_estimators=n_estimators)
+    rf_model.fit(X, y)
+    return rf_model
+
+def r_squared(model, data, y_col):
+    """
+    compute R^2
+    """
+    y = data[y_col]
+    y_hat = predict_linear_reg(model, data, y_col)
+    RSS = ((y-y_hat)**2).sum().item()
+    SST = ((y-y.mean())**2).sum().item()
+    R_squared = 1 - (RSS/SST) #by definition
+    return R_squared

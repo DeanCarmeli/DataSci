@@ -1,7 +1,7 @@
 import pandas as pd
 
 
-def create_div_amount_num(df):
+def create_div_amount_num(df, print_ = False):
     """
     Detects invalid values of dividend_amount and converts string to number.
     Saves it as a new feature
@@ -9,10 +9,10 @@ def create_div_amount_num(df):
     :return: DataFrame with a column named "div_amount_num"
     """
     drop = 0
-    print("################# Creating div_amount_num #################")
+    if print_: print("################# Creating div_amount_num #################")
     # Find rows were dividend_amount doesn't start with $
     valid = df["dividend_amount"].str.startswith('$').sum()
-    print("Found {} samples were dividend_amount did not start with $ - drop".format(df.shape[0]-valid))
+    if print_: print("Found {} samples were dividend_amount did not start with $ - drop".format(df.shape[0]-valid))
     drop += df.shape[0]-valid
     df.drop(df[~df["dividend_amount"].str.startswith('$')].index, inplace=True)
 
@@ -22,13 +22,13 @@ def create_div_amount_num(df):
 
     # Drop dividens that equal to 0
     df.drop(df[df["div_amount_num"] == 0].index, inplace=True)
-    print("Found {} divdends that were eqaul to 0 - drop".format(row_before - df.shape[0]))
+    if print_: print("Found {} divdends that were eqaul to 0 - drop".format(row_before - df.shape[0]))
     drop += row_before - df.shape[0]
-    print(">>> Finished. Total dropped rows due to invalid dividend info: {}".format(drop))
+    if print_: print(">>> Finished. Total dropped rows due to invalid dividend info: {}".format(drop))
     return df
 
 
-def gen_div_direction_and_change(df):
+def gen_div_direction_and_change(df, print_ = False):
     """
     Adds 2 features:
     div_direction = whether the dividend went up (1), down (-1)
@@ -37,7 +37,7 @@ def gen_div_direction_and_change(df):
     :param df: DataFrame
     :return: DataFrame
     """
-    print("################# Creating div_direction and div_change ###")
+    if print_: print("################# Creating div_direction and div_change ###")
     df.reset_index(inplace=True, drop=True)
     df["temp"] = df["company_name"] + "___" + df["div_amount_num"].apply(lambda x: str(x))
     direction = []
@@ -65,11 +65,11 @@ def gen_div_direction_and_change(df):
     df["div_direction"] = direction
     df["div_change"] = change
     df.drop(["temp"], axis=1, inplace=True)
-    print(">>> Finished")
+    if print_: print(">>> Finished")
     return df
 
 
-def create_abnormal_return(df):
+def create_abnormal_return(df, print_ = False):
     """
     Adds the following features:
     1. expected_t = the calculated expected price at t days from announcement date
@@ -91,16 +91,17 @@ def create_abnormal_return(df):
     aar_cols = ["aar_{}".format(x) for x in range(0, 6)]
     aar_percen_cols = ["aar_{}%".format(x) for x in range(0, 6)]
     temp_cols = ["temp_{}".format(x) for x in range(0, 6)]
-    print("################# Creating abnormal return related features ###")
-    print("\tfeature type = expected_t\t\t11 features")
+    if print_: 
+        print("################# Creating abnormal return related features ###")
+        print("\tfeature type = expected_t\t\t11 features")
     for i in range(len(expected_cols)):
         df[expected_cols[i]] = df["alpha"].add(df["beta"].mul(df["sp_price_t{}".format(str(days[i]))]))
 
-    print("\tfeature type = ar_t\t\t11 features")
+    if print_: print("\tfeature type = ar_t\t\t11 features")
     for i in range(len(ar_cols)):
         df[ar_cols[i]] = df["price_t{}".format(str(days[i]))].sub(df[expected_cols[i]])
 
-    print("\tfeature type = aar_t\t\t6 features")
+    if print_: print("\tfeature type = aar_t\t\t6 features")
     df["temp_0"] = df["ar_t0"]
     for i in range(1, len(temp_cols)):
         df[temp_cols[i]] = df["ar_t-{}".format(i)].add(df["temp_{}".format(i - 1)].add(df["ar_t{}".format(i)]))
@@ -110,7 +111,7 @@ def create_abnormal_return(df):
         else:
             df[aar_cols[i]] = df[temp_cols[i]].div(i)
 
-    print("\tfeature type = aar_t%\t\t6 features")
+    if print_: print("\tfeature type = aar_t%\t\t6 features")
     df["temp_0"] = df["expected_t0"]
     for i in range(1, len(temp_cols)):
         df[temp_cols[i]] = df["expected_t-{}".format(i)].add(
@@ -121,7 +122,7 @@ def create_abnormal_return(df):
         else:
             df[aar_percen_cols[i]] = df["aar_{}".format(i)].div(df["temp_{}".format(i)].div(i))
     df.drop(temp_cols, axis=1, inplace=True)
-    print(">>> Finished. Created {} features".format(34))
+    if print_: print(">>> Finished. Created {} features".format(34))
     return df
 
 

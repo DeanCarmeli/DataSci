@@ -1,11 +1,12 @@
 from aggregate import aggregate
 from aggregate import capm_params
 from feature_handler import feature_handler
+from run_model import regression_models
 import zipfile
 import json
 import pandas as pd
+import pickle
 from sklearn.model_selection import train_test_split
-
 from visualize import visualize
 
 ##########################General
@@ -17,10 +18,28 @@ def print_basic_stats(data, nans = True):
     if nans: print("\t#Samples with NaNs: {}".format(nans_count))
     return r, c, nans_count
 
-def split_test_train(df, y_col, test_size = 0.33):
-    X_train, X_test, y_train, y_test = train_test_split\
-        (df.drop([y_col], axis =1), df[y_col], test_size = test_size)
-    return X_train, X_test, y_train, y_test
+def split_test_train(df, y_col=None, test_size = 0.33):
+    """
+    split into train/tets set
+    Params:
+    df: data
+    y_col: the y_col name (string), if None - split df into two dataframes without considering y.
+    test_size: ...
+    """
+    if y_col:
+        if False:#'div_direction' in df:
+            X_train, X_test, y_train, y_test = train_test_split\
+                (df.drop([y_col], axis =1), df[y_col], test_size = test_size, stratify = 'div_direction')
+        else:
+            X_train, X_test, y_train, y_test = train_test_split\
+                (df.drop([y_col], axis =1), df[y_col], test_size = test_size)
+        return X_train, X_test, y_train, y_test
+    else:
+        if False: #if 'div_direction' in df:
+            df_train, df_test, _, _ = train_test_split(df, df, test_size = test_size, stratify = 'div_direction')
+        else: df_train, df_test, _, _ = train_test_split(df, df, test_size = test_size)
+        return df_train, df_test
+
 
 def generate_bl_model_data(df, 
                            window_size = 5, 
@@ -28,6 +47,7 @@ def generate_bl_model_data(df,
                            drop_08_09 = False, 
                            sector_dummies = False,
                            delta_precentage = False,
+                           test_size = 0,
                            print_ = True):
     """
     Generate data for the baseline model.
@@ -36,9 +56,12 @@ def generate_bl_model_data(df,
     window_size: the window_size we wish to predict, either in 1,..,5 or a tuple. if a tuple the window is asymetric and y_col is ignored!
     y_col: the Y column
     drop_08_09: whether to drop 2008,2009 or not
+    delta_precentage: wether to add "delta_%_t-i"  or not (i depends on the window size)
+    test_size: if >0 split into train and test.
     print_: print result details
     
-    Return: DataFrame
+    Return: if no split_train_test: data
+            if test_size>0: data_train , data_test
     """
     cat_cols = list(df.columns[df.dtypes == 'object'])
     
@@ -84,6 +107,8 @@ def generate_bl_model_data(df,
         (baseline_models_data[baseline_models_data['year']!= 2008][baseline_models_data['year']!=2009])\
         .reset_index(drop = True)
     if print_: print("Baseline model features: {}".format(set(baseline_models_data.columns) - set([y_col])))
+    if test_size>0:
+        return split_test_train(baseline_models_data, y_col=None, test_size = 0.33)
     return baseline_models_data
 
 
@@ -144,6 +169,26 @@ def do_aggregate_steps(all_prices):
     df = aggregate.aggregate_fin_ratios(df)
     return df
 
+def step1_wrapper(df, run_speed, print_ = False):
+    rows_before = df.shape[0]
+    df.dropna(inplace=True)
+    rows_after = df.shape[0]
+    print("Dropped {} rows with NaN values".format(rows_before-rows_after))
+
+    # dividend_amount to integer
+    df = feature_handler.create_div_amount_num(df, print_ = print_)
+    df.drop(df[df["div_amount_num"] == 0].index, inplace=True)
+    df.drop("dividend_amount", axis = 1, inplace = True)
+    # Add dividend direction and dividend change
+    df = feature_handler.gen_div_direction_and_change(df, print_ = print_)
+    print("Created: div_direction, div_change")
+
+    # Add abnormal return data
+    df = feature_handler.create_abnormal_return(df, print_ = print_)
+    print("Created: expected_t, ar_t, aar_t, aar_t%")
+    df.reset_index(inplace = True, drop = True)
+    print("")
+    if run_speed <= 1: df.to_csv("data_with_ar.csv", index=False)
 ##########################Step 2
 def remove_outliers(df, range_min, range_max, y_col = 'aar_5', print_ = True):
     df_no_outliers = (df[df[y_col] < range_max][df[y_col] > range_min]).reset_index(drop = True)
@@ -164,6 +209,20 @@ def remove_2008_2009(df, print_ = True):
 ##########################Step 6
 
 ##########################Step 7
+
+def fit_rf(X, y, n_estimators = 500,run_speed = 1):
+    """
+    Fitting random forest on a given data.
+    if run_speed > 1: return already trained model.
+    """
+    if run_speed > 1:
+        with open('notebook_files/step7_rf_model', 'rb') as step7_rf_model_file:
+            model = pickle.load(step7_rf_model_file)
+    else:
+        model = regression_models.fit_rf(X,y,n_estimators = n_estimators)
+        with open('notebook_files/step7_rf_model', 'wb') as step7_rf_model_file:
+            pickle.dump(model, step7_rf_model_file)
+    return model
 
 ##########################Step 8
 
