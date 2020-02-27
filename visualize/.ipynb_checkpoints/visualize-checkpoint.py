@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import csv
 
-
+###########################################################
 def color_neg_pos(val):
     if val < 0:
         color = 'red'
@@ -53,27 +53,28 @@ def window_analysis(df, col_type, start=-1, end=5):
     return win_df
 
 ##############################################################################################
-def number_of_samples(data, category="year", f7=False, dens=False):
-    """
-will present the number of samples of each category in a bar plot;
-category must be a valid column name; 
-defualt: year
-for the total number of samples look for the title
-    """
+# will present the number of samples of each category in a bar plot; category must be a valid column name; defualt: year
+# for the total number of samples look for the title
+def number_of_samples(data, category="year", f7=False, dens=False, f7prop=None, color_0809 = True):
     d = dict((key,0) for key in sorted(list(data[category].unique())))
     for key in d.keys():
         s = data.apply(lambda x: True if x[category]==key else False, axis=1)
         d[key] = len(s[s==True].index)
+    if f7:
+        for key in d.keys():
+            d[key] = d[key] / f7prop[key]
     y_pos = np.arange(len(d.keys()))
     bar_list = plt.bar(y_pos, d.values(), color='deepskyblue', edgecolor='black')
     plt.xticks(y_pos, d.keys(), rotation=70)
     plt.ylabel("# of Samples")
     if f7:
+        plt.ylabel("% of samples")
         plt.title("|erros|>0.05 by {}".format(category))
-        bar_list[10].set_color('r')
-        bar_list[10].set_edgecolor('black')
-        bar_list[11].set_color('r')
-        bar_list[11].set_edgecolor('black')
+        if color_0809:
+            bar_list[10].set_color('r')
+            bar_list[10].set_edgecolor('black')
+            bar_list[11].set_color('r')
+            bar_list[11].set_edgecolor('black')
     else:
         plt.title("{0} samples / {1}". format(str(sum(d.values())), category))
     #plt.show()
@@ -111,7 +112,7 @@ def histogram(data, category, alpha=0, dens=False):
     plt.title("histogram of {}".format(category))
     plt.xlim(min(to_draw), max(to_draw))
     print (min(to_draw), max(to_draw))
-    plt.show()
+    #plt.show()
 
 
 def histogram_for_outliers(data, category, lower_bound, upper_bound, jump):
@@ -147,11 +148,60 @@ def histogram_for_outliers(data, category, lower_bound, upper_bound, jump):
     #plt.show()
 
 
+def stacked_bars(data, cat_to_bar, cat_to_stack, dens=True):
+    d = dict((key,0) for key in sorted(list(data[cat_to_bar].unique())))
+    d_stack = dict((key,0) for key in sorted(list(data[cat_to_stack].unique())))
+    sum_stack = data[cat_to_stack].count
+    for key2 in d_stack.keys():
+        d_stack[key2] = d
+        for key in d.keys():
+            s = data.apply(lambda x: True if (x[cat_to_bar] == key and x[cat_to_stack] == key2) else False, axis=1)
+            d_stack[key2][key] = len(s[s == True].index)
+        d = dict((key, 0) for key in sorted(list(data[cat_to_bar].unique())))
+    to_draw=[]
+    for key2 in d_stack.keys():
+        to_draw.append(list(d_stack[key2].values()))
+    ind = np.arange(len(d.keys()))
+    if dens:
+        sum_year = [0] * len(ind)
+        for x in to_draw:
+            for y in range(len(x)):
+                sum_year[y] += x[y]
+        for x in to_draw:
+            for y in range(len(x)):
+                x[y] = x[y]/sum_year[y]
+    color = ['red','blue','green']
+    if (cat_to_stack=='div_direction'):
+        plt.bar(ind, to_draw[0], color = color[0])
+    else:
+        plt.bar(ind, to_draw[0])
+    bottoms = [0] * len(ind)
+    for i in range(1,len(to_draw)):
+        bottoms = np.add(bottoms,to_draw[i-1]).tolist()
+        if (cat_to_stack=='div_direction'):
+            plt.bar(ind, to_draw[i], bottom=bottoms, color=color[i])
+        else:
+            plt.bar(ind, to_draw[i], bottom=bottoms)
+    plt.xticks(ind, d.keys(), rotation=70)
+    plt.title("percentage samples of each {0} / {1} ".format(cat_to_stack, cat_to_bar))
+    #plt.show()
+
+
+def samples_in_category(data, categories_list):
+    num_samples = []
+    for cat in categories_list:
+        num_samples.append(len(list(data[cat].unique())))
+    plt.bar(np.arange(len(categories_list)), num_samples, width=0.3, align='center')
+    plt.xticks(np.arange(len(categories_list)), categories_list, rotation=70)
+    #plt.show()
+
+
+
+
+
+
 
 ## the functions in order as in the list:
-def hist_by_col(data, col):
-    number_of_samples(data, col)
-
 def func1(data):
     number_of_samples(data)
 
@@ -173,23 +223,24 @@ def func6(data, lower_bound=-0.05, upper_bound=0.05, jump=0.005):
 
 def func7(data, lower_bound=-0.05, upper_bound=0.05):
     data['diff'] = data['aar_5%'] - data['pred']
-    x  = data[(data['diff']<lower_bound) | (data['diff']>upper_bound)]
-    #print(x)
-    number_of_samples(x, f7=True)
+    d = dict(data['year'].value_counts())
+    x = data[(data['diff']<lower_bound) | (data['diff']>upper_bound)]
+    number_of_samples(x, f7=True, f7prop=d)
 
-#
-# data = pd.read_csv(r"C:\Users\mcarmon\DataSci\all_data.csv")
-# func1(data)
-# func2(data)
-# func3(data, line=True)
-# func4(data)
-# func5(data)
-# data = pd.read_csv(r"C:\Users\mcarmon\DataSci\data_with_preds.csv")
-# func6(data)
-# func7(data)
+def div_direction_year(data):
+    stacked_bars(data, "year", "div_direction")
 
+
+def distinct_values(data, list_of_categories):
+    samples_in_category(data, list_of_categories)
+
+#############################################################
 ##step2 wrappers
 import seaborn as sns
+def hist_by_col(data, col):
+    number_of_samples(data, col)
+
+    
 def plot_time_related_hist(df, run_speed = 2):
     fig = plt.figure()
     plt.subplots_adjust(right = 2, wspace=0.2, hspace=0.2)
@@ -247,11 +298,14 @@ def plot_errors_dist(d , pred):
     histogram_for_outliers(d, 'diff', lower_bound, upper_bound, jump)    
     plt.show()
     
-def plot_error_by_year(data, pred, by = 'year'):
-    d = data.copy(deep = True)
-    d['pred'] = pred
+def plot_error_by_year(data, pred, by = 'year', color_0809 = True):
+    data = data.copy(deep = True)
+    data['pred'] = pred
     lower_bound=-0.05; upper_bound=0.05
-    d['diff'] = d['aar_5%'] - d['pred']
-    x  = d[(d['diff']<lower_bound) | (d['diff']>upper_bound)]
-    number_of_samples(x, f7=True, category = by)
+    data['diff'] = data['aar_5%'] - data['pred']
+
+    d = dict(data[by].value_counts())
+    x = data[(data['diff']<lower_bound) | (data['diff']>upper_bound)]
+    number_of_samples(x, f7=True, f7prop=d, category = by, color_0809 = color_0809)
+
     plt.show()
