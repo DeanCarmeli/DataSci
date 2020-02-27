@@ -9,6 +9,7 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.ensemble import RandomForestRegressor
 from scipy.stats import randint
+from sklearn.model_selection import KFold
 
 mse_exp = 4
 
@@ -23,7 +24,7 @@ def predict_linear_reg(model, data, y_col):
     Y = data[y_col]
     return model.predict(X)
 
-def run_linear_reg(data, print_summary = False, print_r2 = True, y_col = "aar_5"):
+def run_linear_reg(data, test_data = None, print_summary = False, print_r2 = True, y_col = "aar_5"):
     """
     Run linear regression
     param: data: DataFrame , print_:Boolean
@@ -34,8 +35,32 @@ def run_linear_reg(data, print_summary = False, print_r2 = True, y_col = "aar_5"
     Y = data[y_col]
     result = sm.OLS(Y, X).fit()
     if print_summary: print(result.summary())
-    if not print_summary and print_r2: print('R^2: {}'.format(result.rsquared))
+    if not print_summary and print_r2: 
+        print('Train data R squared: {}'.format(result.rsquared))
+        if test_data is not None: print("Test data R squared: {}".format(r_squared(result, test_data, y_col = y_col)))
     return result
+
+def evaluate_Rsq_CV(data, y_col = "aar_5", n_splits = 5, print_r2 = True):
+    """
+    Split the data into n_splits folds, at each iteration fit linear regression for n_splits-1 folds and calculate R sqaured for the last fold.
+    param: data: DataFrame , print_r2: Boolean
+    return: list of the R sqaured values
+    """
+    data = sm.add_constant(data, prepend=False)
+    kf = KFold(n_splits=n_splits)    
+    X = data.drop([y_col], axis = 1)
+    Y = data[y_col]
+    R_sqs = []
+    n = kf.get_n_splits(X)
+    for train_index, test_index in kf.split(X):
+        X_train, X_test = X.loc[train_index, ].reset_index(drop = True), X.loc[test_index, ].reset_index(drop = True)
+        y_train, y_test = Y.loc[train_index, ].reset_index(drop = True), Y.loc[test_index, ].reset_index(drop = True)
+        model = sm.OLS(y_train, X_train).fit()
+        R_sqs.append(r_squared(model, pd.concat([X_test, y_test], axis = 1), y_col))
+    if print_r2: print("CV mean R squared: {}".format(np.array(R_sqs).mean()))
+    return R_sqs
+
+
 
 def step7_bl_models(X_train, X_test, y_train, y_test, print_ = True):
     """

@@ -19,7 +19,7 @@ def print_basic_stats(data, nans = True):
     if nans: print("\t#Samples with NaNs: {}".format(nans_count))
     return r, c, nans_count
 
-def split_test_train(df, y_col=None, test_size = 0.33):
+def my_split_test_train(df, y_col=None, test_size = 0.2):
     """
     split into train/tets set
     Params:
@@ -27,18 +27,14 @@ def split_test_train(df, y_col=None, test_size = 0.33):
     y_col: the y_col name (string), if None - split df into two dataframes without considering y.
     test_size: ...
     """
+    if 'div_direction' in df: stratify = df['div_direction']
+    
+    
     if y_col:
-        if False:#'div_direction' in df:
-            X_train, X_test, y_train, y_test = train_test_split\
-                (df.drop([y_col], axis =1), df[y_col], test_size = test_size, stratify = 'div_direction')
-        else:
-            X_train, X_test, y_train, y_test = train_test_split\
-                (df.drop([y_col], axis =1), df[y_col], test_size = test_size)
+        X_train, X_test, y_train, y_test = train_test_split(df.drop([y_col], axis =1), df[y_col], test_size = test_size, stratify=stratify)
         return X_train, X_test, y_train, y_test
     else:
-        if False: #if 'div_direction' in df:
-            df_train, df_test, _, _ = train_test_split(df, df, test_size = test_size, stratify = 'div_direction')
-        else: df_train, df_test, _, _ = train_test_split(df, df, test_size = test_size)
+        df_train, df_test, _, _ = train_test_split(df, df, test_size = test_size,  stratify=stratify)
         return df_train, df_test
 
 
@@ -218,7 +214,7 @@ def plot_ws_by_div_dir(data, ws = ['aar_0%', 'aar_1%', 'aar_2%', 'aar_3%', 'aar_
     #fig.tight_layout() 
     plt.subplots_adjust(right = 3)
     for i,window_name in enumerate(ws):
-        plt.subplot(2, 4, i+1)
+        plt.subplot(3, 3, i+1)
         visualize.hisograms_seperated(data, window_name, 'div_direction', alpha=alpha, dens=dens, line=line)
     plt.show()
 
