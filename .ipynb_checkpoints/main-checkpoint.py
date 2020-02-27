@@ -8,6 +8,7 @@ import pandas as pd
 import pickle
 from sklearn.model_selection import train_test_split
 from visualize import visualize
+import matplotlib.pyplot as plt
 
 ##########################General
 def print_basic_stats(data, nans = True):
@@ -48,6 +49,7 @@ def generate_bl_model_data(df,
                            dummies = ['year', 'month'],
                            delta_precentage = False,
                            test_size = 0,
+                           return_year = False,
                            print_ = True):
     """
     Generate data for the baseline model.
@@ -101,6 +103,7 @@ def generate_bl_model_data(df,
     if dummies:
         for c in dummies: 
             if c in drop_cols_baseline: drop_cols_baseline.remove(c)
+    if return_year: year_col = df['year']
     baseline_models_data = df.drop(drop_cols_baseline, axis = 1)
     if dummies:
         baseline_models_data = pd.get_dummies(data = baseline_models_data,\
@@ -110,6 +113,7 @@ def generate_bl_model_data(df,
     if print_: print("Baseline model features: {}".format(set(baseline_models_data.columns) - set([y_col])))
     if test_size>0:
         return split_test_train(baseline_models_data, y_col=None, test_size = 0.33)
+    if return_year: return baseline_models_data, year_col
     return baseline_models_data
 
 
@@ -206,6 +210,18 @@ def remove_2008_2009(df, print_ = True):
     if print_: print("Removed {} samples from years 2008 - 2009".format(samples_before-samples_after))
     return df
 ##########################Step 5
+
+def plot_ws_by_div_dir(data, ws = ['aar_0%', 'aar_1%', 'aar_2%', 'aar_3%', 'aar_4%', 'aar_5%', 'aar_asy-1_5%']):
+    alpha=0.01; line=True; dens=False
+    data = feature_handler.create_asymmetric_window(data, start=-1, end=5)
+    fig = plt.figure()
+    #fig.tight_layout() 
+    plt.subplots_adjust(right = 3)
+    for i,window_name in enumerate(ws):
+        plt.subplot(2, 4, i+1)
+        visualize.hisograms_seperated(data, window_name, 'div_direction', alpha=alpha, dens=dens, line=line)
+    plt.show()
+
 
 ##########################Step 6
 
