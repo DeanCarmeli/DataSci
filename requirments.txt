@@ -4,5 +4,4 @@ sklearn
 pandas
 jinja2
 statsmodels
-pickle
 scipy
