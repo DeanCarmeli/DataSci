@@ -5,8 +5,11 @@ from run_model import regression_models
 import zipfile
 import json
 import pandas as pd
+import numpy as np
 import pickle
 from sklearn.model_selection import train_test_split
+
+from run_model.descrete_models import run_AdaBoost_Classifier, bucket_assignment, run_K_Neighbors_Classifier
 from visualize import visualize
 import matplotlib.pyplot as plt
 
@@ -290,13 +293,16 @@ def main():
 
 if __name__ == "__main__":
     # main()
-    df = pd.read_csv("all_data.csv")
-    df.drop(df[df["aar_5"] > 10].index, inplace=True)
-    df.drop(df[df["aar_5"] < -10].index, inplace=True)
-    df = feature_handler.create_asymmetric_window(df, -1, 5)
-    visualize.window_analysis(df, "ar")
-    visualize.window_analysis(df, "aar")
-    visualize.window_analysis(df, "aar%")
-    visualize.window_analysis(df, "asy")
+    # df = pd.read_csv("all_data.csv")
+    # df.drop(df[df["aar_5"] > 10].index, inplace=True)
+    # df.drop(df[df["aar_5"] < -10].index, inplace=True)
+    # df = feature_handler.create_asymmetric_window(df, -1, 5)
+    # visualize.window_analysis(df, "ar")
+    # visualize.window_analysis(df, "aar")
+    # visualize.window_analysis(df, "aar%")
+    # visualize.window_analysis(df, "asy")
 
-
+    df              = pd.read_csv("all_data.csv")
+    df["delta_t-4"] = (df["price_t-4"] - df["expected_t-4"]) / df["expected_t-4"]
+    bf              = run_K_Neighbors_Classifier(df.copy())
+    bf.to_csv("after_bucket_test.csv", index=False)
