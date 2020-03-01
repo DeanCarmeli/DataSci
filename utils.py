@@ -30,7 +30,7 @@ fin_ratios = ['MV Debt Ratio',
        'EBITDA/Value', 'Fixed Assets/BV of Capital',
        'Capital Spending/BV of Capital']
 
-drop_cols = [ 'sp_vol_t-1',
+drop_cols = [ 'sp_vol_t-1', #columns we didn't use in project at all
  'sp_vol_t-2',
  'sp_vol_t-3',
  'sp_vol_t-4',
