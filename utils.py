@@ -15,8 +15,6 @@ import pandas as pd
 import numpy as np
 import pickle
 from sklearn.model_selection import train_test_split
-
-from run_model.descrete_models import bucket_assignment, run_K_Neighbors_Classifier
 from visualize import visualize
 import matplotlib.pyplot as plt
 from sklearn.ensemble import RandomForestRegressor
