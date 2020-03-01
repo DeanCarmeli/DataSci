@@ -1,0 +1,7 @@
+selenium==3.141.0
+pandas_datareader==0.8.1
+sklearn
+pandas
+jinja2
+statsmodels
+scipy
