@@ -56,17 +56,18 @@ def run_knn(X_train, X_test, y_train, y_test, K):
 
 def knn_tables(model,X_test, y_test):
     
-    d = {'pred_bucket': model.predict(X_test), 'bucket': y_test}
+    d = {'pred_bucket': model.predict(X_test), 'bucket': y_test,  " ": y_test}
     df = pd.DataFrame(data=d)
 
     table1 = pd.pivot_table(df, index=['bucket'],
-                           columns=['pred_bucket'], aggfunc=pd.np.ma.count, fill_value=0, margins=True)
+                           columns=['pred_bucket'], 
+                            aggfunc=pd.np.ma.count, 
+                            fill_value=0, margins=True)
+    
     pd.options.display.float_format = '{:.2f}'.format
     table2 = table1.div(table1.sum(axis=1), axis=0).multiply(200)
     print("Absolute values:" + "\t"*3 + "Proportion values:")
     print("")
-    table1.style.apply(style_diag, axis=None)
-    table2.style.apply(style_diag, axis=None)
     display_side_by_side(table1,table2)
 
 def display_side_by_side(*args):
