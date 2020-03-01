@@ -46,7 +46,7 @@ def run_linear_reg(data, test_data=None, print_summary=False, print_r2=True, y_c
     return result
 
 
-def evaluate_Rsq_CV(data, y_col="aar_5", n_splits=5, print_r2=True):
+def evaluate_Rsq_CV(data, y_col="aar_5", n_splits=2, print_r2=True):
     """
     Split the data into n_splits folds, at each iteration fit linear regression for n_splits-1 folds and calculate R sqaured for the last fold.
     param: data: DataFrame , print_r2: Boolean

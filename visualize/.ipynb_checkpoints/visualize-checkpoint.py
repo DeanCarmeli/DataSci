@@ -4,17 +4,7 @@ import numpy as np
 import csv
 
 ###########################################################
-def color_neg_pos(val):
-    if val < 0:
-        color = 'red'
-    elif val > 0:
-        color = 'green'
-    else:
-        color = 'black'
-    return "color: {}".format(color)
 
-
-# HOW TO STYLE??? https://pandas.pydata.org/pandas-docs/stable/user_guide/style.html
 def window_analysis(df, col_type, start=-1, end=5):
     """
     Calculates the average col_type over each column in the data set
@@ -48,9 +38,12 @@ def window_analysis(df, col_type, start=-1, end=5):
             res.append(average)
         data[col] = res
     win_df = pd.DataFrame(data, index=["down", "flat", "up"])
-    df.style.applymap(color_neg_pos, subset=relevant_cols)
-    print(win_df)
-    return win_df
+    
+    cm = sns.diverging_palette(10, 130, center = 'light', as_cmap = True, sep = 1)
+
+    s = win_df.style.background_gradient(cmap=cm)
+
+    display(win_df.style.background_gradient(cmap=cm))
 
 ##############################################################################################
 # will present the number of samples of each category in a bar plot; category must be a valid column name; defualt: year
@@ -241,31 +234,6 @@ def hist_by_col(data, col):
     number_of_samples(data, col)
 
     
-def plot_time_related_hist(df, run_speed = 2):
-    fig = plt.figure()
-    plt.subplots_adjust(right = 2, wspace=0.2, hspace=0.2)
-    plt.subplot(1, 3, 1)
-    hist_by_col(df, "year")
-    plt.subplot(1, 3, 2)
-    hist_by_col(df, "month")
-    plt.subplot(1, 3, 3)
-    hist_by_col(df, "quarter")
-    plt.show()
-    
-def plot_time_sector_change_hist(df):
-    fig = plt.figure()
-    plt.subplots_adjust(right = 2.1, wspace=0.2, hspace=0.2)
-    plt.subplot(1, 3, 1)
-    sns.distplot(df["div_amount_num"], hist=False)
-    plt.title("Dividend amount density")
-    plt.xlabel("Dividend amount")
-    plt.subplot(1, 3, 2)
-    hist_by_col(df, "div_direction")
-    plt.subplot(1, 3, 3)
-    sns.distplot(df["div_change"], hist = False)
-    plt.title("Dividend change density")
-    plt.xlabel("Dividend change")
-    plt.show()
     
 def plot_aar5_given_dir(data):
     alpha=0.001; line=True; dens=False
@@ -308,4 +276,44 @@ def plot_error_by_year(data, pred, by = 'year', color_0809 = True):
     x = data[(data['diff']<lower_bound) | (data['diff']>upper_bound)]
     number_of_samples(x, f7=True, f7prop=d, category = by, color_0809 = color_0809)
 
+    plt.show()
+    
+    
+def plot_outliers(df, y_col = 'aar_5', a = -50, b = 10):
+    fig = plt.figure()
+    plt.subplots_adjust(right = 2, wspace=0.2, hspace=0.2)
+    plt.subplot(1, 2, 1)
+    sns.distplot(df[y_col], hist = False) 
+    plt.title("Density estimation of {}".format(y_col))
+    plt.subplot(1, 2, 2)
+    h = np.histogram(df[y_col], bins=list(np.arange(a, b+1, 1)))
+    y = list([len(df[y_col][df[y_col] < a])]) + list(h[0])
+    y.append(len(df[y_col][df[y_col] > b]))
+    x = list(h[1]) + [b]
+    plt.bar(x=x, height=y)
+    plt.title("Histogram of {}, leftmost: <{}, rightmost: >{}".format(y_col, a, b))
+    plt.show()
+    print("{} range: [{}, {}]".format(y_col, df[y_col].min(), df[y_col].max()))
+
+def plot_count(df, y_col = 'sector'):
+    cols = []
+    cols.append(df[y_col].value_counts(normalize=False).rename('# of smaples'))
+    cols.append((df[y_col].value_counts(normalize=True).apply(lambda i: round(i, 3)) * 100).rename('%'))
+    
+    for direction, name in [(-1, '% from decrease'), (0, '% from flat'), (1, '% from increase')]:
+        df_dir = df[df['div_direction'] == direction]
+        cols.append(df_dir[y_col].value_counts(normalize=True).apply(lambda i: round(i, 3)).rename(name) * 100)
+        
+    counts = pd.concat(cols, axis = 1).sort_index()
+    
+    bar_cols =  ['%','% from decrease','% from flat','% from increase']
+    display(counts.style.bar(subset=bar_cols, vmin = 0, vmax = 100, color='#5fba7d'))
+
+def plot_years_change_hist(df):
+    fig = plt.figure()
+    plt.subplots_adjust(right = 2, wspace=0.2, hspace=0.2)
+    plt.subplot(1, 2, 1)
+    hist_by_col(df, "year")
+    plt.subplot(1, 2, 2)
+    hist_by_col(df, "div_direction")
     plt.show()

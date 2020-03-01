@@ -39,7 +39,7 @@ def window_analysis(df, col_type, start=-1, end=5):
         data[col] = res
     win_df = pd.DataFrame(data, index=["down", "flat", "up"])
     
-    cm = sns.diverging_palette(240, 10, center = 'light', as_cmap = True, sep = 1)
+    cm = sns.diverging_palette(10, 130, center = 'light', as_cmap = True, sep = 1)
 
     s = win_df.style.background_gradient(cmap=cm)
 
